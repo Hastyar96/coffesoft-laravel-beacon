@@ -1,0 +1,19 @@
+{
+    "name": "coffessoft/laravel-beacon",
+    "description": "AI Context Engine for Laravel Applications",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Coffessoft\\LaravelBeacon\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Hastyar",
+            "email": "hastyar.a96@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
