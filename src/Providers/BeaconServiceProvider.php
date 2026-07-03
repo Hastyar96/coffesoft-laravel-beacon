@@ -6,25 +6,36 @@ namespace Coffesoft\LaravelBeacon\Providers;
 
 use Coffesoft\LaravelBeacon\Builder\ContextBuilder;
 use Coffesoft\LaravelBeacon\Cache\ScanCache;
+use Coffesoft\LaravelBeacon\Console\BeaconDiffCommand;
 use Coffesoft\LaravelBeacon\Console\BeaconExportCommand;
+use Coffesoft\LaravelBeacon\Console\BeaconReviewCommand;
 use Coffesoft\LaravelBeacon\Console\BeaconScanCommand;
+use Coffesoft\LaravelBeacon\Console\BeaconTaskCommand;
 use Coffesoft\LaravelBeacon\Intelligence\AiContextCompressor;
 use Coffesoft\LaravelBeacon\Intelligence\AiPromptPack;
-use Coffesoft\LaravelBeacon\Intelligence\ArchitectureDetector;
 use Coffesoft\LaravelBeacon\Intelligence\AISummarizer;
+use Coffesoft\LaravelBeacon\Intelligence\ArchitectureDetector;
+use Coffesoft\LaravelBeacon\Intelligence\ArchitectureKnowledge;
 use Coffesoft\LaravelBeacon\Intelligence\BusinessRuleDetector;
 use Coffesoft\LaravelBeacon\Intelligence\DatabaseIntelligence;
 use Coffesoft\LaravelBeacon\Intelligence\DependencyGraphGenerator;
 use Coffesoft\LaravelBeacon\Intelligence\DeveloperOnboarding;
+use Coffesoft\LaravelBeacon\Intelligence\DiffEngine;
 use Coffesoft\LaravelBeacon\Intelligence\EntryPointDetector;
 use Coffesoft\LaravelBeacon\Intelligence\FeatureMapGenerator;
+use Coffesoft\LaravelBeacon\Intelligence\FeatureStoriesEngine;
 use Coffesoft\LaravelBeacon\Intelligence\FolderTreeGenerator;
 use Coffesoft\LaravelBeacon\Intelligence\ImpactMapGenerator;
+use Coffesoft\LaravelBeacon\Intelligence\KnowledgeGraphEngine;
 use Coffesoft\LaravelBeacon\Intelligence\ModuleDetector;
 use Coffesoft\LaravelBeacon\Intelligence\PerformanceAnalyzer;
 use Coffesoft\LaravelBeacon\Intelligence\RelationshipGraph;
+use Coffesoft\LaravelBeacon\Intelligence\ReviewEngine;
 use Coffesoft\LaravelBeacon\Intelligence\RouteIntelligence;
+use Coffesoft\LaravelBeacon\Intelligence\SearchIndexEngine;
 use Coffesoft\LaravelBeacon\Intelligence\SecurityAnalyzer;
+use Coffesoft\LaravelBeacon\Intelligence\SemanticIndexEngine;
+use Coffesoft\LaravelBeacon\Intelligence\TaskContextEngine;
 use Coffesoft\LaravelBeacon\Intelligence\WorkflowDetector;
 use Coffesoft\LaravelBeacon\Reader\FileReader;
 use Coffesoft\LaravelBeacon\Reader\PhpParser;
@@ -57,18 +68,14 @@ use Illuminate\Support\ServiceProvider;
 
 class BeaconServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/beacon.php', 'beacon');
 
-        // Register FileReader as singleton
         $this->app->singleton(FileReader::class);
         $this->app->singleton(PhpParser::class);
 
-        // Register all scanners
+        // Scanners
         $this->app->singleton(ModelScanner::class);
         $this->app->singleton(ControllerScanner::class);
         $this->app->singleton(RouteScanner::class);
@@ -96,7 +103,7 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(PackageScanner::class);
         $this->app->singleton(ModuleDetector::class);
 
-        // Register intelligence engines (v2)
+        // v2 intelligence
         $this->app->singleton(ArchitectureDetector::class);
         $this->app->singleton(SecurityAnalyzer::class);
         $this->app->singleton(PerformanceAnalyzer::class);
@@ -107,7 +114,7 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(RouteIntelligence::class);
         $this->app->singleton(FolderTreeGenerator::class);
 
-        // Register v2.1 intelligence engines
+        // v2.1 intelligence
         $this->app->singleton(AiContextCompressor::class);
         $this->app->singleton(WorkflowDetector::class);
         $this->app->singleton(EntryPointDetector::class);
@@ -117,22 +124,31 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(ImpactMapGenerator::class);
         $this->app->singleton(AiPromptPack::class);
 
-        // Register cache
-        $this->app->singleton(ScanCache::class);
+        // v3.0 intelligence
+        $this->app->singleton(KnowledgeGraphEngine::class);
+        $this->app->singleton(SemanticIndexEngine::class);
+        $this->app->singleton(SearchIndexEngine::class);
+        $this->app->singleton(ArchitectureKnowledge::class);
+        $this->app->singleton(FeatureStoriesEngine::class);
 
-        // Register ContextBuilder
+        // v4.0 intelligence
+        $this->app->singleton(TaskContextEngine::class);
+        $this->app->singleton(DiffEngine::class);
+        $this->app->singleton(ReviewEngine::class);
+
+        $this->app->singleton(ScanCache::class);
         $this->app->singleton(ContextBuilder::class);
     }
 
-    /**
-     * Bootstrap services.
-     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
                 BeaconScanCommand::class,
                 BeaconExportCommand::class,
+                BeaconTaskCommand::class,
+                BeaconDiffCommand::class,
+                BeaconReviewCommand::class,
             ]);
 
             $this->publishes([
