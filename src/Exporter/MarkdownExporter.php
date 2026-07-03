@@ -5,366 +5,450 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Exporter;
 
 use Coffesoft\LaravelBeacon\Context\Context;
-use Illuminate\Support\Facades\File;
 
 /**
- * Exports Context to a clean, AI-ready markdown file with table of contents.
+ * Exports context data to Markdown format for AI consumption.
+ * Generates a comprehensive project overview that can be used
+ * by any AI assistant as context.
  */
 class MarkdownExporter
 {
     /**
-     * Export context to markdown file.
+     * Export the context to a Markdown file.
      */
-    public function export(Context $context, string $outputPath): string
+    public function export(Context $context, string $path): void
     {
-        $markdown = $this->build($context);
+        $data = $context->all();
+        $filename = basename($path);
 
-        File::ensureDirectoryExists(dirname($outputPath));
-        File::put($outputPath, $markdown);
+        $markdown = match (true) {
+            str_contains($filename, 'ai-context') || str_contains($filename, 'ai_context') => $this->buildAiContext($data),
+            str_contains($filename, 'developer-guide') || str_contains($filename, 'developer_guide') => $this->buildDeveloperGuide($data),
+            str_contains($filename, 'prompts') && !str_contains($filename, 'prompt-pack') => $this->buildPrompts($data),
+            str_contains($filename, 'context') || str_contains($filename, '.md') => $this->buildContextMarkdown($data),
+            str_contains($filename, 'project-graph') => $this->buildProjectGraphMarkdown($data),
+            str_contains($filename, 'ai-index') => $this->buildAIIndexMarkdown($data),
+            default => $this->buildContextMarkdown($data),
+        };
 
-        return $outputPath;
+        file_put_contents($path, $markdown);
     }
 
     /**
-     * Build markdown content from context.
+     * Build the comprehensive context.md file.
      */
-    public function build(Context $context): string
+    private function buildContextMarkdown(array $data): string
     {
+        $md = [];
+
+        $md[] = "# Laravel Beacon — AI Project Intelligence";
+        $md[] = "";
+        $md[] = "> Generated for AI-assisted development.";
+        $md[] = "> Total estimated tokens saved by reading this file instead of source code: **thousands**.";
+        $md[] = "";
+        $md[] = "---";
+        $md[] = "";
+
+        // Project overview
+        $md[] = "## 📋 Project Overview";
+        $md[] = "";
+        $md[] = "| Property | Value |";
+        $md[] = "|----------|-------|";
+        $md[] = "| **Project** | " . basename(base_path()) . " |";
+        $md[] = "| **Framework** | Laravel " . ($data['framework']['version'] ?? '?') . " |";
+        $md[] = "| **PHP** | " . ($data['framework']['php_version'] ?? '?') . " |";
+        $md[] = "| **Generated** | " . ($data['generated_at'] ?? '?') . " |";
+        $md[] = "| **Beacon Version** | " . ($data['beacon_version'] ?? '2.0.0') . " |";
+        $md[] = "";
+
+        // Summary counts
+        $stats = $data['statistics'] ?? [];
+        $md[] = "## 📊 Quick Statistics";
+        $md[] = "";
+        $md[] = "| Component | Count |";
+        $md[] = "|-----------|-------|";
+        $md[] = "| **PHP Files** | " . ($stats['total_php_files'] ?? 0) . " |";
+        $md[] = "| **Blade Views** | " . ($stats['total_blade_files'] ?? 0) . " |";
+        $md[] = "| **Models** | " . ($stats['models'] ?? 0) . " |";
+        $md[] = "| **Controllers** | " . ($stats['controllers'] ?? 0) . " |";
+        $md[] = "| **Services** | " . ($stats['services'] ?? 0) . " |";
+        $md[] = "| **Repositories** | " . ($stats['repositories'] ?? 0) . " |";
+        $md[] = "| **Form Requests** | " . ($stats['requests'] ?? 0) . " |";
+        $md[] = "| **Policies** | " . ($stats['policies'] ?? 0) . " |";
+        $md[] = "| **Events** | " . ($stats['events'] ?? 0) . " |";
+        $md[] = "| **Jobs** | " . ($stats['jobs'] ?? 0) . " |";
+        $md[] = "| **Notifications** | " . ($stats['notifications'] ?? 0) . " |";
+        $md[] = "| **Commands** | " . ($stats['commands'] ?? 0) . " |";
+        $md[] = "| **Enums** | " . ($stats['enums'] ?? 0) . " |";
+        $md[] = "| **Packages** | " . ($stats['packages'] ?? 0) . " |";
+        $md[] = "| **Database Tables** | " . ($stats['database_tables'] ?? 0) . " |";
+        $md[] = "| **Routes** | " . ($data['routes']['count'] ?? 0) . " |";
+        $md[] = "";
+        $md[] = "Average controller methods: **{$stats['average_controller_methods']}**";
+        $md[] = "";
+        $md[] = "Average model methods: **{$stats['average_model_methods']}**";
+        $md[] = "";
+
+        // Architecture
+        $arch = $data['architecture'] ?? [];
+        if (!empty($arch)) {
+            $md[] = "---";
+            $md[] = "## 🏗️ Architecture";
+            $md[] = "";
+            $md[] = "**Primary:** " . ($arch['primary'] ?? 'MVC');
+            $md[] = "";
+            if (!empty($arch['secondary'])) {
+                $md[] = "**Secondary:** " . implode(', ', $arch['secondary']);
+                $md[] = "";
+                $md[] = "**Hybrid:** " . ($arch['is_hybrid'] ? 'Yes' : 'No');
+                $md[] = "";
+            }
+            if (!empty($arch['explanations'])) {
+                $md[] = "### Detection Reasoning";
+                $md[] = "";
+                foreach ($arch['explanations'] as $type => $reason) {
+                    $md[] = "- **{$type}**: {$reason}";
+                }
+                $md[] = "";
+            }
+        }
+
+        // Models
+        $md[] = "---";
+        $md[] = "## 📦 Models";
+        $md[] = "";
+        foreach ($data['models']['items'] ?? [] as $model) {
+            $md[] = "### {$model['name']}";
+            $md[] = "";
+            $md[] = "- **Namespace:** `{$model['namespace']}`";
+            $md[] = "- **File:** `{$model['path']}`";
+            if (!empty($model['fillable'])) $md[] = "- **Fillable:** `" . implode('`, `', $model['fillable']) . "`";
+            if (!empty($model['casts'])) {
+                $castStr = implode(', ', array_map(fn($k, $v) => "{$k} => {$v}", array_keys($model['casts']), $model['casts']));
+                $md[] = "- **Casts:** {$castStr}";
+            }
+            if (!empty($model['traits'])) $md[] = "- **Traits:** " . implode(', ', $model['traits']);
+            if (!empty($model['relations'])) {
+                $relStr = [];
+                foreach ($model['relations'] as $type => $count) {
+                    $relStr[] = "{$type}: {$count}";
+                }
+                $md[] = "- **Relations:** " . implode(', ', $relStr);
+            }
+            if (!empty($model['scopes'])) $md[] = "- **Scopes:** " . implode(', ', $model['scopes']);
+            if (!empty($model['accessors'])) $md[] = "- **Accessors:** " . implode(', ', $model['accessors']);
+            $md[] = "";
+        }
+
+        // Controllers
+        $md[] = "---";
+        $md[] = "## 🎮 Controllers";
+        $md[] = "";
+        foreach ($data['controllers']['items'] ?? [] as $ctrl) {
+            $md[] = "### {$ctrl['name']}";
+            $md[] = "";
+            $md[] = "- **Group:** `{$ctrl['group']}`";
+            $md[] = "- **CRUD:** " . ($ctrl['is_crud'] ? 'Yes' : 'No');
+            $md[] = "- **Methods:** " . implode(', ', $ctrl['methods'] ?? []);
+            if (!empty($ctrl['middleware'])) $md[] = "- **Middleware:** " . implode(', ', $ctrl['middleware']);
+            $md[] = "";
+        }
+
+        // Routes
+        $md[] = "---";
+        $md[] = "## 🛣️ Routes ({$data['routes']['count']} total)";
+        $md[] = "";
+        $routeGroups = $data['route_intelligence']['groups'] ?? [];
+        foreach ($routeGroups as $module => $group) {
+            $md[] = "### {$module} ({$group['total']} routes)";
+            $md[] = "";
+            if (!empty($group['middleware'])) $md[] = "- **Middleware:** " . implode(', ', $group['middleware']);
+            if (!empty($group['controllers'])) $md[] = "- **Controllers:** " . implode(', ', $group['controllers']);
+            $md[] = "";
+            foreach ($group['routes'] as $route) {
+                $methods = implode(', ', array_diff($route['methods'] ?? [], ['HEAD']));
+                $name = $route['name'] ? " (`{$route['name']}`)" : '';
+                $md[] = "- `{$methods}` `{$route['uri']}`{$name}";
+            }
+            $md[] = "";
+        }
+
+        // Business Rules
+        $rules = $data['business_rules'] ?? [];
+        if (!empty($rules['items'])) {
+            $md[] = "---";
+            $md[] = "## 📜 Business Rules";
+            $md[] = "";
+            $md[] = "> Detected from validation, model events, database constraints, and accessors.";
+            $md[] = "";
+            foreach ($rules['items'] as $rule) {
+                $md[] = "- **{$rule['type']}**: {$rule['rule']}";
+                $md[] = "  - Source: `{$rule['source']}`";
+            }
+            $md[] = "";
+        }
+
+        // Security
+        $security = $data['security'] ?? [];
+        if (!empty($security['issues'])) {
+            $md[] = "---";
+            $md[] = "## 🔒 Security Analysis";
+            $md[] = "";
+            foreach ($security['issues'] as $issue) {
+                $severity = $issue['severity'];
+                $icon = match ($severity) {
+                    'critical' => '🔴',
+                    'high' => '🟠',
+                    'warning' => '🟡',
+                    default => '🔵',
+                };
+                $md[] = "- {$icon} **{$severity}**: {$issue['message']}";
+            }
+            $md[] = "";
+        }
+
+        // Performance
+        $perf = $data['performance'] ?? [];
+        if (!empty($perf['issues'])) {
+            $md[] = "---";
+            $md[] = "## ⚡ Performance Analysis";
+            $md[] = "";
+            foreach ($perf['issues'] as $issue) {
+                $md[] = "- **{$issue['type']}**: {$issue['message']}";
+            }
+            $md[] = "";
+        }
+
+        // Packages
+        $md[] = "---";
+        $md[] = "## 📦 Packages";
+        $md[] = "";
+        $md[] = "| Package | Version | Category |";
+        $md[] = "|---------|---------|----------|";
+        foreach ($data['packages']['items'] ?? [] as $pkg) {
+            $md[] = "| {$pkg['name']} | {$pkg['version']} | {$pkg['category']} |";
+        }
+        $md[] = "";
+
+        // AI Summaries
+        $summaries = $data['ai_summaries'] ?? [];
+        if (!empty($summaries['items'])) {
+            $md[] = "---";
+            $md[] = "## 🤖 AI Class Summaries";
+            $md[] = "";
+            foreach ($summaries['items'] as $summary) {
+                $md[] = "### {$summary['class']} ({$summary['type']})";
+                $md[] = "";
+                $md[] = "```";
+                $md[] = $summary['summary'];
+                $md[] = "```";
+                $md[] = "";
+            }
+        }
+
+        // Folder Tree
+        $tree = $data['folder_tree'] ?? [];
+        $md[] = "---";
+        $md[] = "## 📁 Project Structure";
+        $md[] = "";
+        $md[] = "```";
+        $md[] = $this->renderTree($tree['root'] ?? [], 0);
+        $md[] = "```";
+        $md[] = "";
+
+        // Footer
+        $md[] = "---";
+        $md[] = "*Generated by Laravel Beacon v2 — AI Project Intelligence Engine*";
+        $md[] = "*Run `php artisan beacon:scan` to regenerate.*";
+        $md[] = "";
+
+        return implode("\n", $md);
+    }
+
+    /**
+     * Build project graph markdown.
+     */
+    private function buildProjectGraphMarkdown(array $data): string
+    {
+        $md = [];
+        $md[] = "# Project Relationship Graph";
+        $md[] = "";
+
+        $graph = $data['project_graph'] ?? [];
+
+        $md[] = "## Nodes (" . count($graph['nodes'] ?? []) . ")";
+        $md[] = "";
+        foreach ($graph['nodes'] ?? [] as $node) {
+            $md[] = "- **{$node['name']}** ({$node['type']})";
+        }
+        $md[] = "";
+
+        $md[] = "## Edges (" . count($graph['edges'] ?? []) . ")";
+        $md[] = "";
+        foreach ($graph['edges'] ?? [] as $edge) {
+            $from = $edge['from'] ?? '';
+            $to = $edge['to'] ?? '';
+            $label = $edge['label'] ?? '';
+            $md[] = "- `{$from}` --{$label}--> `{$to}`";
+        }
+        $md[] = "";
+
+        return implode("\n", $md);
+    }
+
+    /**
+     * Build AI Index markdown.
+     */
+    private function buildAIIndexMarkdown(array $data): string
+    {
+        $md = [];
+        $md[] = "# AI Index — Quick Reference";
+        $md[] = "";
+        $md[] = "This file contains the most important project metadata for AI assistants.";
+        $md[] = "";
+
+        $md[] = "## Models";
+        $md[] = "";
+        foreach ($data['models']['items'] ?? [] as $model) {
+            $md[] = "- `{$model['name']}`";
+            if (!empty($model['fillable'])) $md[] = "   - Fillable: " . implode(', ', $model['fillable']);
+        }
+        $md[] = "";
+
+        $md[] = "## Key Classes";
+        $md[] = "";
+        foreach ($data['ai_summaries']['items'] ?? [] as $summary) {
+            if (in_array($summary['type'], ['service', 'repository', 'policy'])) {
+                $md[] = "- **{$summary['class']}** ({$summary['type']})";
+            }
+        }
+        $md[] = "";
+
+        $md[] = "## Business Rules";
+        $md[] = "";
+        foreach ($data['business_rules']['items'] ?? [] as $rule) {
+            $md[] = "- {$rule['rule']}";
+        }
+        $md[] = "";
+
+        return implode("\n", $md);
+    }
+
+    /**
+     * Build AI context markdown (from AiContextCompressor).
+     */
+    private function buildAiContext(array $data): string
+    {
+        $content = $data['ai_context']['content'] ?? '';
+        if (!empty($content)) {
+            return $content;
+        }
+
+        // Fallback: build from component data
         $lines = [];
-
-        $lines[] = '# Laravel Project Context';
+        $lines[] = '# AI Context — Laravel Project Intelligence';
         $lines[] = '';
-        $lines[] = '> **Generated:** ' . $context->get('generated_at', 'N/A');
-        $lines[] = '> **Tool:** Laravel Beacon';
+        $lines[] = '> Optimized for AI assistants.';
+        $lines[] = '> This file provides full project understanding.';
         $lines[] = '';
-        $lines[] = '---';
+        $lines[] = '## Project';
         $lines[] = '';
-
-        $this->addTableOfContents($lines);
-        $lines[] = '---';
+        $lines[] = '- Name: ' . basename(base_path());
+        $lines[] = '- Framework: Laravel ' . ($data['framework']['version'] ?? '?');
+        $lines[] = '- PHP: ' . ($data['framework']['php_version'] ?? '?');
         $lines[] = '';
-
-        $this->addProjectOverview($lines, $context);
-        $this->addStatistics($lines, $context);
-        $this->addArchitecture($lines, $context);
-        $this->addConfiguration($lines, $context);
-        $this->addModels($lines, $context);
-        $this->addControllers($lines, $context);
-        $this->addRoutes($lines, $context);
-        $this->addDatabase($lines, $context);
-
-        $lines[] = '---';
+        $lines[] = '## Architecture';
         $lines[] = '';
-        $lines[] = '*Generated by Laravel Beacon — Project Context Generator*';
+        $lines[] = ($data['architecture']['primary'] ?? 'MVC');
+        if (!empty($data['architecture']['secondary'])) {
+            $lines[] = 'Patterns: ' . implode(', ', $data['architecture']['secondary']);
+        }
         $lines[] = '';
+        $lines[] = '## Quick Stats';
+        $lines[] = '';
+        $lines[] = '- Models: ' . ($data['models']['count'] ?? 0);
+        $lines[] = '- Controllers: ' . ($data['controllers']['count'] ?? 0);
+        $lines[] = '- Routes: ' . ($data['routes']['count'] ?? 0);
+        $lines[] = '- Services: ' . ($data['services']['count'] ?? 0);
+        $lines[] = '- Packages: ' . ($data['packages']['count'] ?? 0);
+        $lines[] = '';
+        $lines[] = '*See developer-guide.md and prompts.md for more.*';
 
         return implode("\n", $lines);
     }
 
-    private function addTableOfContents(array &$lines): void
+    /**
+     * Build developer guide markdown (from DeveloperOnboarding).
+     */
+    private function buildDeveloperGuide(array $data): string
     {
-        $lines[] = '## Table of Contents';
+        $content = $data['developer_guide']['content'] ?? '';
+        if (!empty($content)) {
+            return $content;
+        }
+
+        $lines = [];
+        $lines[] = '# Developer Onboarding Guide';
         $lines[] = '';
-        $lines[] = '1. [Project Overview](#1-project-overview)';
-        $lines[] = '2. [Project Statistics](#2-project-statistics)';
-        $lines[] = '3. [Architecture](#3-architecture)';
-        $lines[] = '4. [Configuration](#4-configuration)';
-        $lines[] = '5. [Models](#5-models)';
-        $lines[] = '6. [Controllers](#6-controllers)';
-        $lines[] = '7. [Routes](#7-routes)';
-        $lines[] = '8. [Database](#8-database)';
+        $lines[] = '> Generated by Laravel Beacon v2.1';
         $lines[] = '';
+        $lines[] = '## Quick Start';
+        $lines[] = '';
+        $lines[] = '1. Read ai-context.md for project overview';
+        $lines[] = '2. Start with routes/web.php';
+        $lines[] = '3. Trace a request through: Route → Controller → Service → Model';
+        $lines[] = '4. Review features.json for feature map';
+        $lines[] = '5. Review workflows.json for business flows';
+        $lines[] = '';
+        $lines[] = '## Folder Structure';
+        $lines[] = '';
+        $lines[] = '- `app/Models` - Eloquent models';
+        $lines[] = '- `app/Http/Controllers` - HTTP handlers';
+        $lines[] = '- `app/Services` - Business logic';
+        $lines[] = '- `app/Repositories` - Data access layer';
+        $lines[] = '- `app/Http/Requests` - Form validation';
+        $lines[] = '- `app/Policies` - Authorization';
+        $lines[] = '- `app/Jobs` - Queue tasks';
+        $lines[] = '- `app/Events` - Event classes';
+        $lines[] = '- `app/Notifications` - Notification channels';
+        $lines[] = '- `routes/` - Route definitions';
+        $lines[] = '- `resources/views/` - Blade templates';
+        $lines[] = '- `database/migrations/` - Schema changes';
+
+        return implode("\n", $lines);
     }
 
-    private function addProjectOverview(array &$lines, Context $context): void
+    /**
+     * Build prompts markdown (from AiPromptPack).
+     */
+    private function buildPrompts(array $data): string
     {
-        $fw = $context->get('framework', []);
-
-        $lines[] = '## 1. Project Overview';
-        $lines[] = '';
-        $lines[] = '| Metric | Value |';
-        $lines[] = '|---|---|';
-        $lines[] = '| Framework | ' . ($fw['name'] ?? 'Laravel') . ' ' . ($fw['version'] ?? '') . ' |';
-        $lines[] = '| PHP Version | ' . ($fw['php_version'] ?? 'N/A') . ' |';
-        $lines[] = '| Models | ' . $context->get('models.count', 0) . ' |';
-        $lines[] = '| Controllers | ' . $context->get('controllers.count', 0) . ' |';
-        $lines[] = '| Routes | ' . $context->get('routes.count', 0) . ' |';
-        $lines[] = '| Migrations | ' . $context->get('migrations.count', 0) . ' |';
-        $lines[] = '';
+        return $data['ai_prompts']['content'] ?? '# AI Prompts' . "\n\n" . 'See ai-context.md for project understanding first.';
     }
 
-    private function addStatistics(array &$lines, Context $context): void
+    /**
+     * Recursively render folder tree.
+     */
+    private function renderTree(array $node, int $depth): string
     {
-        $stats = $context->get('statistics', []);
+        $output = '';
+        $indent = str_repeat('  ', $depth);
 
-        $lines[] = '## 2. Project Statistics';
-        $lines[] = '';
-
-        if (empty($stats)) {
-            $lines[] = 'No statistics available.';
-            $lines[] = '';
-            return;
+        if ($depth === 0) {
+            $output .= "{$node['name']}/\n";
         }
 
-        $lines[] = '| Component | Count |';
-        $lines[] = '|---|---|';
+        foreach ($node['children'] ?? [] as $child) {
+            if (isset($child['exists']) && !$child['exists']) continue;
 
-        $order = ['models', 'controllers', 'routes', 'migrations', 'seeders', 'factories',
-                   'policies', 'events', 'listeners', 'jobs', 'notifications', 'mail',
-                   'commands', 'middleware', 'requests', 'providers', 'enums', 'traits'];
-
-        foreach ($order as $key) {
-            if (isset($stats[$key]) && $stats[$key] > 0) {
-                $lines[] = '| ' . ucfirst(str_replace('_', ' ', $key)) . ' | ' . $stats[$key] . ' |';
+            if (!empty($child['children'])) {
+                $output .= "{$indent}├── {$child['name']}/\n";
+                $output .= $this->renderTree($child, $depth + 1);
+            } else {
+                $output .= "{$indent}├── {$child['name']}\n";
             }
         }
 
-        $lines[] = '';
-    }
-
-    private function addArchitecture(array &$lines, Context $context): void
-    {
-        $modules = $context->get('modules.modules', []);
-
-        $lines[] = '## 3. Architecture';
-        $lines[] = '';
-
-        if (empty($modules)) {
-            $lines[] = 'No modules detected.';
-            $lines[] = '';
-            return;
-        }
-
-        $lines[] = '| Module | Routes | Source |';
-        $lines[] = '|---|---|---|';
-
-        foreach ($modules as $module) {
-            $source = $module['source'] ?? 'auto';
-            $lines[] = '| ' . $module['label'] . ' | ' . $module['route_count'] . ' | ' . $source . ' |';
-        }
-
-        $lines[] = '';
-    }
-
-    private function addConfiguration(array &$lines, Context $context): void
-    {
-        $config = $context->get('configuration', []);
-
-        $lines[] = '## 4. Configuration';
-        $lines[] = '';
-
-        if (empty($config)) {
-            $lines[] = 'No configuration data available.';
-            $lines[] = '';
-            return;
-        }
-
-        $app = $config['app'] ?? [];
-        if (! empty($app)) {
-            $lines[] = '### Application';
-            $lines[] = '';
-            $lines[] = '| Setting | Value |';
-            $lines[] = '|---|---|';
-            $lines[] = '| Name | ' . ($app['name'] ?? 'N/A') . ' |';
-            $lines[] = '| Environment | ' . ($app['env'] ?? 'N/A') . ' |';
-            $lines[] = '| Debug | ' . ($app['debug'] === true ? 'true' : ($app['debug'] === false ? 'false' : 'N/A')) . ' |';
-            $lines[] = '| URL | ' . ($app['url'] ?? 'N/A') . ' |';
-            $lines[] = '| Timezone | ' . ($app['timezone'] ?? 'N/A') . ' |';
-            $lines[] = '| Locale | ' . ($app['locale'] ?? 'N/A') . ' |';
-            $lines[] = '';
-        }
-
-        $sections = [
-            'Queue' => $config['queue'] ?? [],
-            'Cache' => $config['cache'] ?? [],
-            'Session' => $config['session'] ?? [],
-            'Filesystem' => $config['filesystem'] ?? [],
-            'Mail' => $config['mail'] ?? [],
-        ];
-
-        foreach ($sections as $title => $data) {
-            if (! empty($data)) {
-                $driver = $data['driver'] ?? $data['default_disk'] ?? 'N/A';
-                $lines[] = '| **' . $title . '** | Driver: ' . $driver . ' |';
-            }
-        }
-
-        $lines[] = '';
-    }
-
-    private function addModels(array &$lines, Context $context): void
-    {
-        $items = $context->get('models.items', []);
-
-        $lines[] = '## 5. Models';
-        $lines[] = '';
-
-        if (empty($items)) {
-            $lines[] = 'No models detected.';
-            $lines[] = '';
-            return;
-        }
-
-        foreach ($items as $model) {
-            $lines[] = '### ' . $model['name'];
-            $lines[] = '';
-            $lines[] = '- **Namespace:** `' . $model['namespace'] . '`';
-            $lines[] = '- **Path:** `' . $model['path'] . '`';
-
-            $fillable = $model['fillable'] ?? [];
-            if (! empty($fillable)) {
-                $lines[] = '- **Fillable:** `' . implode('`, `', $fillable) . '`';
-            }
-
-            $guarded = $model['guarded'] ?? [];
-            if (! empty($guarded)) {
-                $lines[] = '- **Guarded:** `' . implode('`, `', $guarded) . '`';
-            }
-
-            $casts = $model['casts'] ?? [];
-            if (! empty($casts)) {
-                $lines[] = '- **Casts:**';
-                foreach ($casts as $field => $type) {
-                    $lines[] = '  - `' . $field . '` → ' . $type;
-                }
-            }
-
-            $relations = $model['relations'] ?? [];
-            if (! empty($relations)) {
-                $lines[] = '- **Relationships:**';
-                foreach ($relations as $type => $count) {
-                    $lines[] = '  - ' . $type . ': ' . $count;
-                }
-            }
-
-            $traits = $model['traits'] ?? [];
-            if (! empty($traits)) {
-                $lines[] = '- **Traits:** `' . implode('`, `', $traits) . '`';
-            }
-
-            $scopes = $model['scopes'] ?? [];
-            if (! empty($scopes)) {
-                $lines[] = '- **Scopes:** `' . implode('`, `', $scopes) . '`';
-            }
-
-            $accessors = $model['accessors'] ?? [];
-            if (! empty($accessors)) {
-                $lines[] = '- **Accessors:** `' . implode('`, `', $accessors) . '`';
-            }
-
-            $mutators = $model['mutators'] ?? [];
-            if (! empty($mutators)) {
-                $lines[] = '- **Mutators:** `' . implode('`, `', $mutators) . '`';
-            }
-
-            $lines[] = '';
-        }
-    }
-
-    private function addControllers(array &$lines, Context $context): void
-    {
-        $items = $context->get('controllers.items', []);
-
-        $lines[] = '## 6. Controllers';
-        $lines[] = '';
-
-        if (empty($items)) {
-            $lines[] = 'No controllers detected.';
-            $lines[] = '';
-            return;
-        }
-
-        $groups = [];
-        foreach ($items as $c) {
-            $group = $c['group'] ?? 'root';
-            $groups[$group][] = $c;
-        }
-
-        foreach ($groups as $group => $controllers) {
-            $lines[] = '### Group: `' . $group . '`';
-            $lines[] = '';
-            $lines[] = '| Controller | CRUD | Methods | Middleware |';
-            $lines[] = '|---|---|---|---|';
-
-            foreach ($controllers as $c) {
-                $crud = $c['is_crud'] ? 'Yes' : '';
-                $methods = implode(', ', array_slice($c['methods'] ?? [], 0, 8));
-                if (count($c['methods'] ?? []) > 8) {
-                    $methods .= ', ...';
-                }
-                $mw = ! empty($c['middleware']) ? implode(', ', $c['middleware']) : '';
-                $lines[] = '| ' . $c['name'] . ' | ' . $crud . ' | `' . $methods . '` | ' . $mw . ' |';
-            }
-
-            $lines[] = '';
-        }
-    }
-
-    private function addRoutes(array &$lines, Context $context): void
-    {
-        $groups = $context->get('routes.groups', []);
-
-        $lines[] = '## 7. Routes';
-        $lines[] = '';
-
-        if (empty($groups)) {
-            $lines[] = 'No routes detected.';
-            $lines[] = '';
-            return;
-        }
-
-        $lines[] = '| Group | Count |';
-        $lines[] = '|---|---|';
-
-        foreach ($groups as $prefix => $count) {
-            $lines[] = '| `' . $prefix . '` | ' . $count . ' |';
-        }
-
-        $lines[] = '';
-    }
-
-    private function addDatabase(array &$lines, Context $context): void
-    {
-        $database = $context->get('database', []);
-
-        $lines[] = '## 8. Database';
-        $lines[] = '';
-
-        if (empty($database) || empty($database['tables'])) {
-            $lines[] = 'No database schema detected.';
-            $lines[] = '';
-            return;
-        }
-
-        $lines[] = '### Pivot Tables';
-        $lines[] = '';
-        $pivots = $database['pivot_tables'] ?? [];
-
-        if (! empty($pivots)) {
-            foreach ($pivots as $pivot) {
-                $lines[] = '- `' . $pivot . '`';
-            }
-        } else {
-            $lines[] = 'None detected.';
-        }
-        $lines[] = '';
-
-        $lines[] = '### Tables';
-        $lines[] = '';
-        $lines[] = '| Table | Columns | Foreign Keys | Timestamps | Soft Deletes | Pivot |';
-        $lines[] = '|---|---|---|---|---|---|';
-
-        foreach ($database['tables'] as $table) {
-            $colCount = count($table['columns'] ?? []);
-            $fkCount = count($table['foreign_keys'] ?? []);
-            $ts = $table['has_timestamps'] ? 'Yes' : '';
-            $sd = $table['has_soft_deletes'] ? 'Yes' : '';
-            $isPivot = $table['is_pivot'] ? 'Yes' : '';
-            $lines[] = '| `' . $table['name'] . '` | ' . $colCount . ' | ' . $fkCount . ' | ' . $ts . ' | ' . $sd . ' | ' . $isPivot . ' |';
-        }
-
-        $lines[] = '';
-        $lines[] = '**Total Foreign Keys:** ' . ($database['total_foreign_keys'] ?? 0);
-        $lines[] = '';
+        return $output;
     }
 }

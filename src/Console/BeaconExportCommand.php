@@ -4,89 +4,72 @@ declare(strict_types=1);
 
 namespace Coffesoft\LaravelBeacon\Console;
 
-use Coffesoft\LaravelBeacon\Builder\ContextBuilder;
+use Coffesoft\LaravelBeacon\Context\Context;
 use Coffesoft\LaravelBeacon\Exporter\JsonExporter;
-use Coffesoft\LaravelBeacon\Exporter\MarkdownExporter;
 use Illuminate\Console\Command;
 
-/**
- * Artisan command to export the context to file.
- *
- * Usage:
- *   php artisan beacon:export --format=md
- *   php artisan beacon:export --format=json
- */
 class BeaconExportCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'beacon:export
-        {--format=md : Output format: md or json}
-        {--output= : Custom output path (optional)}';
+                            {--input= : Input JSON file path (default: storage/app/beacon/context.json)}
+                            {--output= : Output directory (default: storage/app/beacon)}
+                            {--format=all : Export formats: all, json, md}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Export project context to file (md or json)';
-
-    /**
-     * @var ContextBuilder
-     */
-    private ContextBuilder $contextBuilder;
-
-    /**
-     * @var MarkdownExporter
-     */
-    private MarkdownExporter $markdownExporter;
-
-    /**
-     * @var JsonExporter
-     */
-    private JsonExporter $jsonExporter;
+    protected $description = 'Export previously scanned beacon data to different formats';
 
     public function __construct(
-        ContextBuilder $contextBuilder,
-        MarkdownExporter $markdownExporter,
-        JsonExporter $jsonExporter
+        private readonly JsonExporter $jsonExporter,
     ) {
         parent::__construct();
-        $this->contextBuilder = $contextBuilder;
-        $this->markdownExporter = $markdownExporter;
-        $this->jsonExporter = $jsonExporter;
     }
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): int
     {
-        $format = $this->option('format');
-        $customOutput = $this->option('output');
+        $inputPath = $this->option('input') ?? storage_path('app/beacon/context.json');
+        $outputDir = $this->option('output') ?? storage_path('app/beacon');
 
-        $this->info('Laravel Beacon — Export');
-        $this->line('');
-
-        $context = $this->contextBuilder->build();
-
-        $outputDir = $customOutput ? dirname($customOutput) : config('beacon.output_directory', 'storage/app/beacon');
-        $outputDir = base_path($outputDir);
-
-        if ($format === 'json') {
-            $outputPath = $customOutput ?? $outputDir . '/context.json';
-            $this->jsonExporter->export($context, $outputPath);
-        } else {
-            $outputPath = $customOutput ?? $outputDir . '/context.md';
-            $this->markdownExporter->export($context, $outputPath);
+        if (!file_exists($inputPath)) {
+            $this->error(" Input file not found: {$inputPath}");
+            $this->line(" Run `php artisan beacon:scan` first to generate the data.");
+            return self::FAILURE;
         }
 
-        $this->line(' Exported to: ' . $outputPath);
-        $this->info('Context exported successfully.');
+        $this->info(" 📤 Exporting from: {$inputPath}");
 
-        return 0;
+        $json = file_get_contents($inputPath);
+        $data = json_decode($json, true);
+
+        if (!$data) {
+            $this->error(" Invalid JSON in input file.");
+            return self::FAILURE;
+        }
+
+        if (!is_dir($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+
+        $context = new Context();
+        $context->merge($data);
+
+        $files = $this->jsonExporter->exportAll($context, $outputDir);
+
+        $this->info(" ✅ Export complete! Generated files:");
+        foreach ($files as $file) {
+            $size = filesize($file);
+            $this->line("   ✓ " . basename($file) . " (" . $this->formatBytes($size) . ")");
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB'];
+        $i = 0;
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+        return round($bytes, 1) . ' ' . $units[$i];
     }
 }

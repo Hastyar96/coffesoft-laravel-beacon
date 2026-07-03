@@ -1,6 +1,6 @@
 {
     "name": "coffesoft/laravel-beacon",
-    "description": "Laravel Project Context Generator — Scan, understand, and export clean context for AI-assisted development",
+    "description": "Laravel Beacon v2 — AI Project Intelligence Engine. Scan, understand, and export clean context for AI-assisted development.",
     "type": "library",
     "license": "MIT",
     "autoload": {
@@ -30,5 +30,10 @@
     },
     "require-dev": {
         "orchestra/testbench": "^7.0 || ^8.0 || ^9.0"
+    },
+    "suggest": {
+        "livewire/livewire": "For Livewire component scanning",
+        "laravel/sanctum": "For API authentication scanning",
+        "spatie/laravel-permission": "For role/permission scanning"
     }
 }
