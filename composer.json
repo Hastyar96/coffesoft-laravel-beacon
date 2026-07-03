@@ -11,7 +11,7 @@
     "extra": {
       "laravel": {
             "providers": [
-                "Coffessoft\\LaravelBeacon\\LaravelBeaconServiceProvider"
+                "Coffessoft\\LaravelBeacon\\Providers\\BeaconServiceProvider"
             ]
         }
     },
