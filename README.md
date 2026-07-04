@@ -1,4 +1,4 @@
-# Laravel Beacon v1.0.1
+# Laravel Beacon v1.0.0
 
 **Project Intelligence Engine for Laravel** — Scan, understand, and export clean context for any Laravel project.
 

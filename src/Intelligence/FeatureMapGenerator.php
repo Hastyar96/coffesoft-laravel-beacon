@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * Enhanced Feature Map Generator v2.1
+ * Feature Map Generator
  *
  * Detects features using multiple signals:
  * Controllers, Route groups, Views, Models, Services, Policies,

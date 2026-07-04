@@ -8,7 +8,7 @@ use Coffesoft\LaravelBeacon\Reader\FileReader;
 use Coffesoft\LaravelBeacon\Reader\PhpParser;
 
 /**
- * Enhanced Service Scanner v2.1
+ * Service Scanner
  *
  * Detects services by scanning source files only.
  * No application class instantiation, no autoloading.
