@@ -1,4 +1,4 @@
-# Laravel Beacon
+# Laravel Beacon v1.0.0
 
 **Project Intelligence Engine for Laravel** — Scan, understand, and export clean context for any Laravel project.
 
@@ -32,6 +32,7 @@ The service provider auto-discovers via Laravel package discovery.
 
 | Laravel | PHP | Support Level |
 |---------|-----|--------------|
+| 13.x | 8.2–8.4 | ✅ Official |
 | 12.x | 8.2–8.4 | ✅ Official |
 | 11.x | 8.1–8.4 | ✅ Official |
 | 10.x | 8.1–8.3 | ✅ Official |
@@ -39,12 +40,12 @@ The service provider auto-discovers via Laravel package discovery.
 
 ---
 
-## Commands (8 total)
+## Commands
 
 ### Core Commands
 
 ```bash
-# Full project scan — runs all 25 scanners + 35 intelligence engines
+# Full project scan — runs all scanners + intelligence engines
 php artisan beacon:scan
 
 # Re-export from cached scan data
@@ -52,7 +53,7 @@ php artisan beacon:export --format=md
 php artisan beacon:export --format=json
 ```
 
-### AI Working Context (v4)
+### AI Working Context
 
 ```bash
 # Generate task-specific context for AI assistants
@@ -65,7 +66,7 @@ php artisan beacon:diff
 php artisan beacon:review --min-severity=warning
 ```
 
-### AI Copilot (v5.0 — NEW)
+### AI Copilot
 
 ```bash
 # Full AI refactoring plan with priorities and execution order
@@ -94,7 +95,7 @@ All outputs are stored in `storage/app/beacon/`.
 | `semantic-index.json` | JSON | Class-level semantic metadata |
 | `search-index.json` | JSON | Pre-computed answers to common questions |
 
-### AI Working Context (v4)
+### AI Working Context
 
 | File | Format | Content |
 |------|--------|---------|
@@ -106,7 +107,7 @@ All outputs are stored in `storage/app/beacon/`.
 | `diff.md` | Markdown | Project changes since last scan |
 | `review.md` | Markdown | Code quality findings with severity |
 
-### AI Copilot (v5.0 — NEW)
+### AI Copilot
 
 | File | Format | Content |
 |------|--------|---------|
@@ -122,33 +123,14 @@ All outputs are stored in `storage/app/beacon/`.
 ## Architecture
 
 ```
-25 Scanners → Raw Data → 35 Intelligence Engines → 15+ Output Files
-
-v2 Scanners (25):
-  Models, Controllers, Routes, Migrations, Database, Config,
-  Services, Repositories, FormRequests, Middleware, Policies,
-  Events, Jobs, Notifications, Mail, Traits, Enums, Helpers,
-  Livewire, Blade, API, Queue, Storage, Packages, Commands
-
-v2-v4 Intelligence (30 engines):
-  Architecture Detection, Security Analysis, Performance Analysis,
-  Business Rules, Relationship Graph, AI Summaries,
-  Database Intelligence, Route Intelligence, Folder Tree,
-  Workflow Detection, Dependency Graph, Feature Map,
-  Impact Map, AI Context Compression, Entry Points,
-  Developer Onboarding, AI Prompt Pack,
-  Knowledge Graph, Semantic Index, Search Index,
-  Architecture Knowledge, Feature Stories,
-  Task Context, Diff Engine, Review Engine,
-  Enhanced Statistics, AI Summary, AI Navigation
-
-v5.0 AI Copilot (5 NEW engines):
-  AutoControllerSplitter — Detects controllers with >10 methods
-  CodeFixEngine — Actionable patch suggestions (read-only)
-  RouteHealthEngine — Orphan/duplicate/unnamed route detection
-  ModelDependencyTracker++ — Coupling heatmap per model
-  AiRefactorPlanner — 3-phase prioritized execution plan
+Scanners → Raw Data → Intelligence Engines → Output Files
 ```
+
+### Scanners (25)
+Models, Controllers, Routes, Migrations, Database, Config, Services, Repositories, FormRequests, Middleware, Policies, Events, Jobs, Notifications, Mail, Traits, Enums, Helpers, Livewire, Blade, API, Queue, Storage, Packages, Commands
+
+### Intelligence Engines (30+)
+Architecture Detection, Security Analysis, Performance Analysis, Business Rules, Relationship Graph, AI Summaries, Database Intelligence, Route Intelligence, Folder Tree, Workflow Detection, Dependency Graph, Feature Map, Impact Map, AI Context Compression, Entry Points, Developer Onboarding, AI Prompt Pack, Knowledge Graph, Semantic Index, Search Index, Architecture Knowledge, Feature Stories, Task Context, Diff Engine, Review Engine, Enhanced Statistics, AI Summary, AI Navigation, AutoControllerSplitter, CodeFixEngine, RouteHealthEngine, ModelDependencyTracker, AiRefactorPlanner
 
 ---
 
@@ -194,7 +176,7 @@ v5.0 AI Copilot (5 NEW engines):
 ## Requirements
 
 - PHP 8.1+
-- Laravel 9.x, 10.x, 11.x, or 12.x
+- Laravel 9.x, 10.x, 11.x, 12.x, or 13.x
 
 ---
 

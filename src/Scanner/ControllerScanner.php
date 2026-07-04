@@ -10,7 +10,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 /**
- * v6 Improved ControllerScanner — extracts proven controller metadata.
+ * Improved ControllerScanner — extracts proven controller metadata.
  *
  * Uses token-based AST analysis (MethodBodyAnalyzer) to extract
  * proven relationships: constructor dependencies, models used,

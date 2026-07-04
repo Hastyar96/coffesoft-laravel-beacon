@@ -9,7 +9,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 /**
- * v6 Improved ModelScanner — extracts proven model metadata including
+ * Improved ModelScanner — extracts proven model metadata including
  * relationships with target models, table, fills, guarded, casts,
  * scopes, accessors, mutators, traits, observers, and factory status.
  *

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v3.0 Semantic AI Index — every important class gets semantic metadata:
+ * Semantic AI Index — every important class gets semantic metadata:
  * Purpose, Responsibilities, Related Features, Dependencies, Related Models,
  * Related Controllers, Related Routes, Business Rules, Possible Side Effects, Keywords, Tags.
  */

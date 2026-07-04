@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v5.0 Auto Controller Splitter
+ * Auto Controller Splitter
  *
  * Detects controllers with >10 methods OR >300 lines.
  * Suggests exact split structure by mapping methods to logical sub-controllers.

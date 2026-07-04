@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v3.0 Search Index — pre-computed answers to common questions.
+ * Search Index — pre-computed answers to common questions.
  * Allows AI to answer "Where is login implemented?" instantly.
  */
 class SearchIndexEngine

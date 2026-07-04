@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v5.0 Route Health Engine
+ * Route Health Engine
  *
  * Analyzes all routes for quality issues:
  * - unnamed routes (cannot use route() helper)

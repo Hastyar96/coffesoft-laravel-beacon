@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v8 Knowledge Graph Engine — builds a complete, verified knowledge graph
+ * Knowledge Graph Engine — builds a complete, verified knowledge graph
  * of the entire Laravel project.
  *
  * Every node has a UUID, type, file, line, and evidence.

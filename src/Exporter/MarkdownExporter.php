@@ -7,7 +7,7 @@ namespace Coffesoft\LaravelBeacon\Exporter;
 use Coffesoft\LaravelBeacon\Context\Context;
 
 /**
- * v2.1 MarkdownExporter — Generates all MD and text output files.
+ * MarkdownExporter — Generates all MD and text output files.
  * Handles: context.md, ai-context.md, ai-summary.md, developer-guide.md,
  * prompts.md, architecture-report.md, project-graph.md, ai-index.md
  */
@@ -43,7 +43,7 @@ class MarkdownExporter
         $md[] = "# Laravel Beacon — AI Project Intelligence";
         $md[] = "";
         $md[] = "> Generated for AI-assisted development.";
-        $md[] = "> **v1.0** — Project intelligence and analysis.";
+        $md[] = "> **Laravel Beacon v1.0.0** — Project intelligence and analysis.";
         $md[] = "> Total estimated tokens saved by reading this file instead of source code: **thousands**.";
         $md[] = "";
         $md[] = "---";

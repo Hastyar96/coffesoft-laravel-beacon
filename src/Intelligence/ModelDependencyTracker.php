@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v5.0 Model Dependency Tracker++
+ * Model Dependency Tracker++
  *
  * Tracks which controllers touch which models and which services depend on which models.
  * Builds a dependency heatmap showing tight coupling and high-risk dependencies.

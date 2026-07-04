@@ -86,6 +86,28 @@ class BeaconScanCommand extends Command
             return self::FAILURE;
         }
 
+        // Show validation warnings after successful scan
+        if ($context->hasValidationWarnings()) {
+            $this->newLine();
+            $this->warn('  ⚠ Validation Warnings:');
+            foreach ($context->getValidationWarnings() as $warning) {
+                $component = $warning['component'] ?? '?';
+                $field = $warning['field'] ?? '?';
+                $expected = $warning['expected'] ?? '?';
+                $received = $warning['received'] ?? '?';
+                $this->line("    • [{$component}] Field '{$field}': expected {$expected}, got {$received}");
+            }
+            $this->warn('  Validation warnings saved to storage/app/beacon/validation-warnings.json');
+            $this->newLine();
+            
+            // Save validation warnings to file
+            $warningsDir = dirname($outputPath);
+            file_put_contents(
+                $warningsDir . '/validation-warnings.json',
+                json_encode($context->getValidationWarnings(), JSON_PRETTY_PRINT)
+            );
+        }
+
         $this->newLine();
 
         $duration = round(microtime(true) - $startTime, 2);

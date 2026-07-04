@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v3.0 Feature Stories — generates technical documentation for each detected feature.
+ * Feature Stories — generates technical documentation for each detected feature.
  * Includes: Purpose, User Flow, Main Controllers, Models, Services, Database Tables,
  * Routes, Views, Permissions, Dependencies, Possible Risks.
  */

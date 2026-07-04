@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v11 Agent Context Operating System — the final intelligence layer.
+ * Agent Context Operating System — the final intelligence layer.
  *
  * Provides ALL capabilities an AI agent needs to safely navigate and edit
  * a Laravel project. Every fact is proven from source code evidence.
@@ -600,7 +600,7 @@ class AgentContextEngine
         return [
             'workspace' => [
                 'generated_at' => date('c'),
-                'beacon_version' => '11.0',
+                'beacon_version' => '1.0.0',
                 'project' => [
                     'name' => basename(base_path()),
                     'framework' => 'Laravel ' . ($allData['framework']['version'] ?? '?'),

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v7 ChangeImpactEngine — Evidence-based change impact analysis.
+ * ChangeImpactEngine — Evidence-based change impact analysis.
  *
  * Given any file in the project, calculates proven affected files
  * and risk level based ONLY on verified dependency relationships.

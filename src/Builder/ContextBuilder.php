@@ -54,10 +54,19 @@ use Coffesoft\LaravelBeacon\Scanner\StorageScanner;
 use Coffesoft\LaravelBeacon\Scanner\TraitScanner;
 
 /**
- * v2.1 ContextBuilder — Orchestrates all scanners, intelligence, and cache.
+ * ContextBuilder — Orchestrates all scanners, intelligence, and cache.
+ *
+ * FIX: Added resilience — a single malformed scanner result does NOT
+ * abort the whole scan. Validation warnings are collected and reported
+ * instead of silently corrupting data.
  */
 class ContextBuilder
 {
+    /**
+     * @var array<int, array{scanner: string, message: string}>
+     */
+    private array $scanErrors = [];
+
     public function __construct(
         // Scanners
         private readonly ModelScanner $modelScanner,
@@ -96,7 +105,7 @@ class ContextBuilder
         private readonly DatabaseIntelligence $databaseIntelligence,
         private readonly RouteIntelligence $routeIntelligence,
         private readonly FolderTreeGenerator $folderTreeGenerator,
-        // v2.1 intelligence engines
+        //
         private readonly AiContextCompressor $aiContextCompressor,
         private readonly WorkflowDetector $workflowDetector,
         private readonly EntryPointDetector $entryPointDetector,
@@ -129,127 +138,60 @@ class ContextBuilder
         ]);
 
         // Phase 1: Scan all project components (each wrapped in try/catch for isolation)
-        $scanResult = $this->safeScan(fn() => $this->modelScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->controllerScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->routeScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->migrationScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->databaseScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->statisticsScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->configScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->serviceScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->repositoryScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->formRequestScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->middlewareScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->policyScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->eventScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->jobScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->notificationScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->mailScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->traitScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->enumScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->helperScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->livewireScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->bladeScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->apiScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->queueScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->storageScanner->scan());
-        $context->merge($scanResult);
-
-        $scanResult = $this->safeScan(fn() => $this->packageScanner->scan());
-        $context->merge($scanResult);
+        $context = $this->scanPhase($context, [
+            'ModelScanner' => fn() => $this->modelScanner->scan(),
+            'ControllerScanner' => fn() => $this->controllerScanner->scan(),
+            'RouteScanner' => fn() => $this->routeScanner->scan(),
+            'MigrationScanner' => fn() => $this->migrationScanner->scan(),
+            'DatabaseScanner' => fn() => $this->databaseScanner->scan(),
+            'StatisticsScanner' => fn() => $this->statisticsScanner->scan(),
+            'ConfigScanner' => fn() => $this->configScanner->scan(),
+            'ServiceScanner' => fn() => $this->serviceScanner->scan(),
+            'RepositoryScanner' => fn() => $this->repositoryScanner->scan(),
+            'FormRequestScanner' => fn() => $this->formRequestScanner->scan(),
+            'MiddlewareScanner' => fn() => $this->middlewareScanner->scan(),
+            'PolicyScanner' => fn() => $this->policyScanner->scan(),
+            'EventScanner' => fn() => $this->eventScanner->scan(),
+            'JobScanner' => fn() => $this->jobScanner->scan(),
+            'NotificationScanner' => fn() => $this->notificationScanner->scan(),
+            'MailScanner' => fn() => $this->mailScanner->scan(),
+            'TraitScanner' => fn() => $this->traitScanner->scan(),
+            'EnumScanner' => fn() => $this->enumScanner->scan(),
+            'HelperScanner' => fn() => $this->helperScanner->scan(),
+            'LivewireScanner' => fn() => $this->livewireScanner->scan(),
+            'BladeScanner' => fn() => $this->bladeScanner->scan(),
+            'APIScanner' => fn() => $this->apiScanner->scan(),
+            'QueueScanner' => fn() => $this->queueScanner->scan(),
+            'StorageScanner' => fn() => $this->storageScanner->scan(),
+            'PackageScanner' => fn() => $this->packageScanner->scan(),
+        ]);
 
         // Phase 2: Module detection
-        $modules = $this->moduleDetector->detect($context->all());
-        $context->merge($modules);
+        $context = $this->analyzePhase($context, [
+            'ModuleDetector' => fn($data) => $this->moduleDetector->detect($data),
+            'ArchitectureDetector' => fn($data) => $this->architectureDetector->detect($data),
+            'SecurityAnalyzer' => fn($data) => $this->securityAnalyzer->analyze($data),
+            'PerformanceAnalyzer' => fn($data) => $this->performanceAnalyzer->analyze($data),
+            'BusinessRuleDetector' => fn($data) => $this->businessRuleDetector->detect($data),
+            'RelationshipGraph' => fn($data) => $this->relationshipGraph->generate($data),
+            'AISummarizer' => fn($data) => $this->aiSummarizer->generate($data),
+            'DatabaseIntelligence' => fn($data) => $this->databaseIntelligence->analyze($data),
+            'RouteIntelligence' => fn($data) => $this->routeIntelligence->analyze($data),
+            'FolderTreeGenerator' => fn($data) => $this->folderTreeGenerator->generate(),
+            'AiContextCompressor' => fn($data) => $this->aiContextCompressor->generate($data),
+            'WorkflowDetector' => fn($data) => $this->workflowDetector->detect($data),
+            'EntryPointDetector' => fn($data) => $this->entryPointDetector->detect($data),
+            'DependencyGraphGenerator' => fn($data) => $this->dependencyGraphGenerator->generate($data),
+            'FeatureMapGenerator' => fn($data) => $this->featureMapGenerator->generate($data),
+            'DeveloperOnboarding' => fn($data) => $this->developerOnboarding->generate($data),
+            'ImpactMapGenerator' => fn($data) => $this->impactMapGenerator->generate($data),
+            'AiPromptPack' => fn($data) => $this->aiPromptPack->generate($data),
+        ]);
 
-        // Phase 3: Core intelligence analysis
-        $context->merge($this->architectureDetector->detect($context->all()));
-        $context->merge($this->securityAnalyzer->analyze($context->all()));
-        $context->merge($this->performanceAnalyzer->analyze($context->all()));
-        $context->merge($this->businessRuleDetector->detect($context->all()));
-
-        // Phase 4: Relationship graph
-        $context->merge($this->relationshipGraph->generate($context->all()));
-
-        // Phase 5: AI summaries
-        $context->merge($this->aiSummarizer->generate($context->all()));
-
-        // Phase 6: Specialized intelligence
-        $context->merge($this->databaseIntelligence->analyze($context->all()));
-        $context->merge($this->routeIntelligence->analyze($context->all()));
-
-        // Phase 7: Folder tree
-        $context->merge($this->folderTreeGenerator->generate());
-
-        // Phase 8: v2.1 AI Context Compression
-        $context->merge($this->aiContextCompressor->generate($context->all()));
-
-        // Phase 9: Workflow Detection
-        $context->merge($this->workflowDetector->detect($context->all()));
-
-        // Phase 10: Entry Point Detection
-        $context->merge($this->entryPointDetector->detect($context->all()));
-
-        // Phase 11: Dependency Graph
-        $context->merge($this->dependencyGraphGenerator->generate($context->all()));
-
-        // Phase 12: Feature Map
-        $context->merge($this->featureMapGenerator->generate($context->all()));
-
-        // Phase 13: Developer Onboarding Guide
-        $context->merge($this->developerOnboarding->generate($context->all()));
-
-        // Phase 14: Change Impact Map
-        $context->merge($this->impactMapGenerator->generate($context->all()));
-
-        // Phase 15: AI Prompt Pack
-        $context->merge($this->aiPromptPack->generate($context->all()));
+        // Return scan errors as a validation entry
+        if (!empty($this->scanErrors)) {
+            $context->set('_scan_errors', $this->scanErrors);
+        }
 
         // Record scanned files for incremental cache
         $this->recordScannedFiles();
@@ -259,6 +201,67 @@ class ContextBuilder
         $context->set('beacon_version', '1.0.0');
 
         return $context;
+    }
+
+    /**
+     * Run multiple scanner functions with isolated error handling.
+     * Each scanner failure is recorded but does NOT abort the scan.
+     *
+     * @param array<string, callable> $scanners
+     */
+    private function scanPhase(Context $context, array $scanners): Context
+    {
+        foreach ($scanners as $name => $scanner) {
+            try {
+                $result = $scanner();
+                if (is_array($result) && !empty($result)) {
+                    $context->merge($result);
+                }
+            } catch (\Error $e) {
+                // Class not found errors (e.g. HasApiTokens) should be caught here
+                $this->recordError($name, $e->getMessage());
+            } catch (\Throwable $e) {
+                $this->recordError($name, $e->getMessage());
+            }
+        }
+        return $context;
+    }
+
+    /**
+     * Run multiple intelligence analysis functions with isolated error handling.
+     *
+     * @param array<string, callable> $analyzers
+     */
+    private function analyzePhase(Context $context, array $analyzers): Context
+    {
+        $data = $context->all();
+        foreach ($analyzers as $name => $analyzer) {
+            try {
+                $result = $analyzer($data);
+                if (is_array($result) && !empty($result)) {
+                    $context->merge($result);
+                }
+            } catch (\Error $e) {
+                $this->recordError($name, $e->getMessage());
+            } catch (\Throwable $e) {
+                $this->recordError($name, $e->getMessage());
+            }
+            
+            // Refresh data for next analyzer
+            $data = $context->all();
+        }
+        return $context;
+    }
+
+    /**
+     * Record a scanner/analyzer error for diagnostics.
+     */
+    private function recordError(string $scanner, string $message): void
+    {
+        $this->scanErrors[] = [
+            'scanner' => $scanner,
+            'message' => $message,
+        ];
     }
 
     /**
@@ -300,20 +303,6 @@ class ContextBuilder
         }
 
         $this->scanCache->recordScan($files);
-    }
-
-    private function safeScan(callable $scanner): array
-    {
-        try {
-            $result = $scanner();
-            return is_array($result) ? $result : [];
-        } catch (\Error $e) {
-            // Class not found errors (e.g. HasApiTokens) should be caught here
-            // Since they are PHP \Error, not \Exception
-            return [];
-        } catch (\Throwable $e) {
-            return [];
-        }
     }
 
     private function getLaravelVersion(): string

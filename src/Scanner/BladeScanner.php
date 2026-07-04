@@ -7,7 +7,7 @@ namespace Coffesoft\LaravelBeacon\Scanner;
 use Coffesoft\LaravelBeacon\Reader\FileReader;
 
 /**
- * v6.5 BladeScanner — scans Blade templates for layout inheritance,
+ * BladeScanner — scans Blade templates for layout inheritance,
  * components, sections, and view hierarchy.
  *
  * ONLY uses static source code parsing - no class instantiation, no autoloading.

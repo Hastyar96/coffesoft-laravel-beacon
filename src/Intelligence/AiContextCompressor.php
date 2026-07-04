@@ -37,7 +37,7 @@ class AiContextCompressor
             ['Project Name', basename(base_path())],
             ['Framework', 'Laravel ' . ($data['framework']['version'] ?? '?')],
             ['PHP Version', $data['framework']['php_version'] ?? '?'],
-            ['Beacon Version', $data['beacon_version'] ?? '2.1.0'],
+            ['Beacon Version', $data['beacon_version'] ?? '1.0.0'],
             ['Generated', $data['generated_at'] ?? '?'],
             ['Confidence', '100 (from project metadata)'],
         ]);

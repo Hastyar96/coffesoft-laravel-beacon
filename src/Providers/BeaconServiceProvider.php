@@ -115,7 +115,7 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(PackageScanner::class);
         $this->app->singleton(ModuleDetector::class);
 
-        // v2 intelligence
+        // Intelligence engines
         $this->app->singleton(ArchitectureDetector::class);
         $this->app->singleton(SecurityAnalyzer::class);
         $this->app->singleton(PerformanceAnalyzer::class);
@@ -126,7 +126,7 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(RouteIntelligence::class);
         $this->app->singleton(FolderTreeGenerator::class);
 
-        // v2.1 intelligence
+        //
         $this->app->singleton(AiContextCompressor::class);
         $this->app->singleton(WorkflowDetector::class);
         $this->app->singleton(EntryPointDetector::class);
@@ -136,19 +136,19 @@ class BeaconServiceProvider extends ServiceProvider
         $this->app->singleton(ImpactMapGenerator::class);
         $this->app->singleton(AiPromptPack::class);
 
-        // v3.0 intelligence
+        //
         $this->app->singleton(KnowledgeGraphEngine::class);
         $this->app->singleton(SemanticIndexEngine::class);
         $this->app->singleton(SearchIndexEngine::class);
         $this->app->singleton(ArchitectureKnowledge::class);
         $this->app->singleton(FeatureStoriesEngine::class);
 
-        // v4.0 intelligence
+        //
         $this->app->singleton(TaskContextEngine::class);
         $this->app->singleton(DiffEngine::class);
         $this->app->singleton(ReviewEngine::class);
 
-        // v5.0 AI Copilot intelligence
+        //
         $this->app->singleton(AutoControllerSplitter::class);
         $this->app->singleton(CodeFixEngine::class);
         $this->app->singleton(RouteHealthEngine::class);
@@ -164,13 +164,11 @@ class BeaconServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                // v1–v4 commands
                 BeaconScanCommand::class,
                 BeaconExportCommand::class,
                 BeaconTaskCommand::class,
                 BeaconDiffCommand::class,
                 BeaconReviewCommand::class,
-                // v5.0 commands
                 BeaconFixPlanCommand::class,
                 BeaconSuggestFixCommand::class,
                 BeaconRouteHealthCommand::class,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v10 Request Lifecycle Engine — builds complete, proven request flows
+ * Request Lifecycle Engine — builds complete, proven request flows
  * from Browser → Button → JS → AJAX → Route → Middleware → Controller →
  * Service → Model → Event → Response → View → DOM Update.
  *

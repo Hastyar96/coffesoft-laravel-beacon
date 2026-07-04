@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v9 AI Workspace Engine — generates focused workspaces for AI coding agents.
+ * AI Workspace Engine — generates focused workspaces for AI coding agents.
  *
  * Instead of exporting the entire project, allows AI agents to request
  * focused workspaces containing only the files and relationships needed

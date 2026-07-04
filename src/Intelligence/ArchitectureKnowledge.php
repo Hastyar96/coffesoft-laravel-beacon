@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v3.0 Architecture Knowledge Detection
+ * Architecture Knowledge Detection
  *
  * Returns confidence scores for: MVC, Repository Pattern, Service Layer,
  * DDD, CQRS, Modules, API First, Event Driven, Layered Architecture, Hexagonal.

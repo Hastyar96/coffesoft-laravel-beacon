@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Coffesoft\LaravelBeacon\Intelligence;
 
 /**
- * v4.1 Review Engine — Smarter, evidence-based code quality analysis.
+ * Review Engine — Smarter, evidence-based code quality analysis.
  *
  * Instead of just saying "Controller too large", suggests exactly HOW to split it
  * based on detected method patterns. Every finding includes severity, confidence,

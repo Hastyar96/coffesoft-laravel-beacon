@@ -8,7 +8,7 @@ return [
     | Beacon Configuration
     |--------------------------------------------------------------------------
     |
-    | This file configures the Laravel Beacon v2 AI Project Intelligence Engine.
+    | This file configures the Laravel Beacon AI Project Intelligence Engine.
     | All scanners, analyzers, and exporters are configurable here.
     |
     */

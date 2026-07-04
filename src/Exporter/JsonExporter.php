@@ -7,7 +7,7 @@ namespace Coffesoft\LaravelBeacon\Exporter;
 use Coffesoft\LaravelBeacon\Context\Context;
 
 /**
- * v2.1 Exporter — Generates 15+ output files including AI tools and guides.
+ * Exporter — Generates 15+ output files including AI tools and guides.
  */
 class JsonExporter
 {
@@ -127,7 +127,7 @@ class JsonExporter
             'ai_summaries' => $data['ai_summaries'],
             'statistics' => $data['statistics'],
             'folder_tree' => $data['folder_tree'],
-            // v2.1 additions
+            //
             'entry_points' => $data['entry_points'],
             'workflows' => $data['workflows'],
             'features' => $data['features'],
