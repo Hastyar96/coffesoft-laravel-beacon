@@ -102,8 +102,9 @@ class ArchitectureDetector
         $hasImplementation = false;
 
         foreach ($repos as $repo) {
-            if ($repo['type'] === 'interface') $hasInterface = true;
-            if ($repo['type'] === 'implementation') $hasImplementation = true;
+            $type = $repo['type'] ?? '';
+            if ($type === 'interface') $hasInterface = true;
+            if ($type === 'implementation') $hasImplementation = true;
         }
 
         return $hasInterface && $hasImplementation;

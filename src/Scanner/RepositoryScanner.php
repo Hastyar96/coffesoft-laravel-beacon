@@ -38,10 +38,19 @@ class RepositoryScanner
                 }
             }
 
+            // Detect if this is an interface or class
+            $type = 'implementation';
+            if (preg_match('/^interface\s+\w+/m', $contents)) {
+                $type = 'interface';
+            } elseif (preg_match('/^abstract\s+class\s+\w+/m', $contents)) {
+                $type = 'abstract';
+            }
+
             $items[] = [
                 'name' => $name,
                 'namespace' => $this->reader->extractNamespace($contents) ?? 'App\\Repositories',
                 'path' => $file['relative_path'],
+                'type' => $type,
                 'model' => $model,
                 'methods' => $methods,
                 'method_count' => count($methods),

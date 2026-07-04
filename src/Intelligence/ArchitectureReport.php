@@ -54,8 +54,9 @@ class ArchitectureReport
         $hasInterface = false;
         $hasImplementation = false;
         foreach ($repos as $r) {
-            if ($r['type'] === 'interface') $hasInterface = true;
-            if ($r['type'] === 'implementation') $hasImplementation = true;
+            $type = $r['type'] ?? '';
+            if ($type === 'interface') $hasInterface = true;
+            if ($type === 'implementation') $hasImplementation = true;
         }
 
         // 3. Folder Organization

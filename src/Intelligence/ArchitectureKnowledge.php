@@ -139,8 +139,9 @@ class ArchitectureKnowledge
         $hasImplementation = false;
 
         foreach ($items as $r) {
-            if ($r['type'] === 'interface') $hasInterface = true;
-            if ($r['type'] === 'implementation') $hasImplementation = true;
+            $type = $r['type'] ?? '';
+            if ($type === 'interface') $hasInterface = true;
+            if ($type === 'implementation') $hasImplementation = true;
         }
 
         if ($hasInterface && $hasImplementation) {
