@@ -82,7 +82,7 @@ class FolderTreeGenerator
             ];
         }
 
-        $name = array_key_first($definition) !== null ? array_key_first($definition) : '';
+        $name = (array_keys($definition) !== []) ? array_keys($definition)[0] : '';
         $children = [];
 
         if ($name !== '') {

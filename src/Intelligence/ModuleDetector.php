@@ -59,7 +59,10 @@ class ModuleDetector
         }
 
         return [
-            'modules' => $modules,
+            'modules' => [
+                'items' => $modules,
+                'count' => count($modules),
+            ],
             'controller_groups' => $controllerGroups,
             'total_modules' => count($modules),
         ];

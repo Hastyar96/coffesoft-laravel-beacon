@@ -1,4 +1,4 @@
-# Laravel Beacon v1.0.0
+# Laravel Beacon v1.0.1
 
 **Project Intelligence Engine for Laravel** — Scan, understand, and export clean context for any Laravel project.
 
@@ -91,9 +91,8 @@ All outputs are stored in `storage/app/beacon/`.
 |------|--------|---------|
 | `context.json` | JSON | Complete structured project data |
 | `context.md` | Markdown | AI-readable project overview |
-| `knowledge-graph.json` | JSON | Nodes + edges relationship graph |
-| `semantic-index.json` | JSON | Class-level semantic metadata |
-| `search-index.json` | JSON | Pre-computed answers to common questions |
+| `project-graph.json` | JSON | Relationship graph between project components |
+| `architecture.json` | JSON | Detected architecture patterns and analysis |
 
 ### AI Working Context
 
@@ -129,8 +128,8 @@ Scanners → Raw Data → Intelligence Engines → Output Files
 ### Scanners (25)
 Models, Controllers, Routes, Migrations, Database, Config, Services, Repositories, FormRequests, Middleware, Policies, Events, Jobs, Notifications, Mail, Traits, Enums, Helpers, Livewire, Blade, API, Queue, Storage, Packages, Commands
 
-### Intelligence Engines (30+)
-Architecture Detection, Security Analysis, Performance Analysis, Business Rules, Relationship Graph, AI Summaries, Database Intelligence, Route Intelligence, Folder Tree, Workflow Detection, Dependency Graph, Feature Map, Impact Map, AI Context Compression, Entry Points, Developer Onboarding, AI Prompt Pack, Knowledge Graph, Semantic Index, Search Index, Architecture Knowledge, Feature Stories, Task Context, Diff Engine, Review Engine, Enhanced Statistics, AI Summary, AI Navigation, AutoControllerSplitter, CodeFixEngine, RouteHealthEngine, ModelDependencyTracker, AiRefactorPlanner
+### Intelligence Engines
+Architecture Detection, Security Analysis, Performance Analysis, Business Rules, Relationship Graph, AI Summaries, Database Intelligence, Route Intelligence, Folder Tree, Module Detection, Workflow Detection, Dependency Graph, Feature Map, Impact Map, AI Context Compression, Entry Points, Developer Onboarding, AI Prompt Pack, Task Context, Diff Engine, Review Engine, Enhanced Statistics, Route Health, Code Fix Engine, AI Refactor Planner, Auto Controller Splitter
 
 ---
 
@@ -177,6 +176,8 @@ Architecture Detection, Security Analysis, Performance Analysis, Business Rules,
 
 - PHP 8.1+
 - Laravel 9.x, 10.x, 11.x, 12.x, or 13.x
+- ext-json (included with PHP by default)
+- ext-mbstring (included with PHP by default)
 
 ---
 

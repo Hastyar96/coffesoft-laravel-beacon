@@ -97,13 +97,12 @@ class BeaconScanCommand extends Command
                 $received = $warning['received'] ?? '?';
                 $this->line("    • [{$component}] Field '{$field}': expected {$expected}, got {$received}");
             }
-            $this->warn('  Validation warnings saved to storage/app/beacon/validation-warnings.json');
+            $this->warn('  Validation warnings saved to ' . $outputPath . '/validation-warnings.json');
             $this->newLine();
             
             // Save validation warnings to file
-            $warningsDir = dirname($outputPath);
             file_put_contents(
-                $warningsDir . '/validation-warnings.json',
+                $outputPath . '/validation-warnings.json',
                 json_encode($context->getValidationWarnings(), JSON_PRETTY_PRINT)
             );
         }

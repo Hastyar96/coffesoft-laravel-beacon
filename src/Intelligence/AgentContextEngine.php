@@ -600,7 +600,7 @@ class AgentContextEngine
         return [
             'workspace' => [
                 'generated_at' => date('c'),
-                'beacon_version' => '1.0.0',
+                'beacon_version' => \Coffesoft\LaravelBeacon\Beacon::VERSION,
                 'project' => [
                     'name' => basename(base_path()),
                     'framework' => 'Laravel ' . ($allData['framework']['version'] ?? '?'),

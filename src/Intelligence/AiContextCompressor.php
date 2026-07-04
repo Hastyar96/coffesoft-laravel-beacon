@@ -66,9 +66,9 @@ class AiContextCompressor
         $lines[] = '';
         if (!empty($modules['items'])) {
             foreach ($modules['items'] as $module) {
-                $lines[] = "- **{$module['name']}**";
-                if (!empty($module['routes'])) $lines[] = "  - Routes: {$module['routes']}";
-                if (!empty($module['controllers'])) $lines[] = "  - Controllers: " . implode(', ', array_column($module['controllers'] ?? [], 'name'));
+                $label = $module['label'] ?? $module['key'] ?? 'Unknown';
+                $lines[] = "- **{$label}**";
+                if (!empty($module['route_count'])) $lines[] = "  - Routes: {$module['route_count']}";
             }
         } else {
             $routeGroups = $data['route_intelligence']['groups'] ?? [];
@@ -166,7 +166,7 @@ class AiContextCompressor
         $lines[] = '---';
         $lines[] = '## 9. Route Overview [confidence: 95]';
         $lines[] = '';
-        $lines[] = "Total routes: **{$data['routes']['count']}**";
+        $lines[] = "Total routes: **" . ($data['routes']['count'] ?? 0) . "**";
         $lines[] = '';
         $routeGroups = $data['route_intelligence']['groups'] ?? [];
         foreach ($routeGroups as $module => $group) {
@@ -218,11 +218,11 @@ class AiContextCompressor
         $lines[] = '---';
         $lines[] = '## 12. Queue Usage [confidence: 80]';
         $lines[] = '';
-        $lines[] = "Default driver: **{$queue['default_driver']}**";
-        $lines[] = "Connections: " . implode(', ', $queue['connections'] ?? []);
+        $lines[] = "Default driver: **" . ($queue['default_driver'] ?? 'sync') . "**";
+        $lines[] = "Connections: " . (!empty($queue['connections']) ? implode(', ', $queue['connections']) : 'none');
         $lines[] = "Horizon: " . (($queue['horizon_installed'] ?? false) ? 'Installed' : 'Not installed');
-        $lines[] = "Queueable jobs: " . count(array_filter($data['jobs']['items'] ?? [], fn($j) => $j['queued']));
-        $lines[] = "Sync jobs: " . count(array_filter($data['jobs']['items'] ?? [], fn($j) => !$j['queued']));
+        $lines[] = "Queueable jobs: " . count(array_filter($data['jobs']['items'] ?? [], fn($j) => !empty($j['queued'])));
+        $lines[] = "Sync jobs: " . count(array_filter($data['jobs']['items'] ?? [], fn($j) => empty($j['queued'])));
         $lines[] = '';
 
         // Notifications

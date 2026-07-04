@@ -319,7 +319,7 @@ class Context
      * Recursively validate the data structure.
      *
      * @param array<string, mixed> $data
-     * @param array<int, string> $path
+     * @param string $prefix
      */
     private function validateStructure(array $data, string $prefix): void
     {
